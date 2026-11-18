@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem("shelf-theme");
+    if (t !== "light" && t !== "dark") return;
+    document.querySelector('meta[name="color-scheme"]').content = t;
+    document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {}
+})();
+</script>
+<meta name="description" content="Bible memory verses from the clock, in the Legacy Standard Bible, with flash cards, fill in the blank, and other memory games.">
+<title>Memory Verses</title>
+<link rel="canonical" href="https://shea-nelson.github.io/memory-verses/">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Nunito:wght@400;700;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<script src="app.js" type="module"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap site-row">
+    <a class="brand" href="https://shea-nelson.github.io/">
+      <img src="icon.svg" alt="" width="28" height="28">
+      <span>All pages</span>
+    </a>
+    <button type="button" class="theme-btn" aria-pressed="false"><span class="to-dark">Dark</span><span class="to-light">Light</span></button>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <section class="wrap hero">
+    <p class="kicker">From the clock, in the LSB</p>
+    <h1>Memory <em>Verses</em></h1>
+    <p class="lede">Every verse the clock has shown, with games to hide it in your heart. A new verse is added each Sunday and Wednesday.</p>
+  </section>
+
+  <div class="wrap controls">
+    <label class="scope">
+      <span>Practice</span>
+      <select id="scope" aria-describedby="scope-help">
+        <option value="all">All verses</option>
+        <option value="newest">Newest verse only</option>
+        <option value="learning">Still learning</option>
+      </select>
+    </label>
+    <p id="scope-help" class="sr">Choose which verses the games use.</p>
+    <p class="progress-line" id="progress-line" aria-live="polite"></p>
+  </div>
+
+  <div class="wrap tabs-wrap">
+    <div class="tabs" role="tablist" aria-label="Ways to practice">
+      <button type="button" role="tab" id="tab-list" aria-selected="true" data-mode="list">Verses</button>
+      <button type="button" role="tab" id="tab-flash" aria-selected="false" tabindex="-1" data-mode="flash">Flash cards</button>
+      <button type="button" role="tab" id="tab-blank" aria-selected="false" tabindex="-1" data-mode="blank">Fill in</button>
+      <button type="button" role="tab" id="tab-letters" aria-selected="false" tabindex="-1" data-mode="letters">First letters</button>
+      <button type="button" role="tab" id="tab-order" aria-selected="false" tabindex="-1" data-mode="order">Word order</button>
+      <button type="button" role="tab" id="tab-match" aria-selected="false" tabindex="-1" data-mode="match">Match</button>
+      <button type="button" role="tab" id="tab-hide" aria-selected="false" tabindex="-1" data-mode="hide">Fade away</button>
+    </div>
+  </div>
+
+  <div class="wrap panels">
+    <section role="tabpanel" id="panel-list" aria-labelledby="tab-list">
+      <div class="panel-inner">
+        <label class="search">
+          <span class="sr">Search verses</span>
+          <input type="search" id="search" placeholder="Search by word or reference" autocomplete="off" enterkeyhint="search">
+        </label>
+        <p class="count" id="list-count" aria-live="polite"></p>
+        <ol class="verse-list" id="verse-list" role="list"></ol>
+      </div>
+    </section>
+
+    <section role="tabpanel" id="panel-flash" aria-labelledby="tab-flash" hidden>
+      <div class="panel-inner">
+        <p class="help">Tap the card or press Space to flip it.</p>
+        <div class="flash-stage">
+          <button type="button" class="flash" id="flash-card" aria-describedby="flash-pos">
+            <span class="flash-inner">
+              <span class="face front"><span class="face-label">Reference</span><span class="face-text" id="flash-front"></span></span>
+              <span class="face back"><span class="face-label">Verse</span><span class="face-text verse-text" id="flash-back"></span></span>
+            </span>
+          </button>
+        </div>
+        <p class="pos" id="flash-pos" aria-live="polite"></p>
+        <div class="row">
+          <button type="button" class="btn" id="flash-prev">Previous</button>
+          <button type="button" class="btn" id="flash-shuffle">Shuffle</button>
+          <button type="button" class="btn" id="flash-next">Next</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-learn" id="flash-learning">Still learning</button>
+          <button type="button" class="btn btn-got" id="flash-got">Got it</button>
+        </div>
+        <label class="check"><input type="checkbox" id="flash-reverse"> Show the verse first</label>
+      </div>
+    </section>
+
+    <section role="tabpanel" id="panel-blank" aria-labelledby="tab-blank" hidden>
+      <div class="panel-inner">
+        <fieldset class="levels">
+          <legend>Words to hide</legend>
+          <label><input type="radio" name="blank-level" value="0.2" checked> 20%</label>
+          <label><input type="radio" name="blank-level" value="0.4"> 40%</label>
+          <label><input type="radio" name="blank-level" value="0.7"> 70%</label>
+          <label><input type="radio" name="blank-level" value="1"> All</label>
+        </fieldset>
+        <h2 class="game-ref" id="blank-ref"></h2>
+        <form id="blank-form" class="blank-text verse-text" autocomplete="off" novalidate></form>
+        <p class="result" id="blank-result" role="status"></p>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="blank-check">Check</button>
+          <button type="button" class="btn" id="blank-reveal">Show answers</button>
+          <button type="button" class="btn" id="blank-new">New blanks</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn" id="blank-prev">Previous verse</button>
+          <button type="button" class="btn" id="blank-next">Next verse</button>
+        </div>
+      </div>
+    </section>
+
+    <section role="tabpanel" id="panel-letters" aria-labelledby="tab-letters" hidden>
+      <div class="panel-inner">
+        <p class="help">Each word shows only its first letter. Say the verse out loud, and tap a word to peek at it.</p>
+        <h2 class="game-ref" id="letters-ref"></h2>
+        <p class="letters verse-text" id="letters-text"></p>
+        <div class="row">
+          <button type="button" class="btn" id="letters-toggle" aria-pressed="false">Show whole verse</button>
+          <button type="button" class="btn" id="letters-reset">Hide peeks</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn" id="letters-prev">Previous verse</button>
+          <button type="button" class="btn" id="letters-next">Next verse</button>
+        </div>
+      </div>
+    </section>
+
+    <section role="tabpanel" id="panel-order" aria-labelledby="tab-order" hidden>
+      <div class="panel-inner">
+        <p class="help">Tap the words in the right order to build the verse.</p>
+        <h2 class="game-ref" id="order-ref"></h2>
+        <p class="built verse-text" id="order-built" aria-label="Verse so far"></p>
+        <p class="result" id="order-result" role="status"></p>
+        <div class="chips" id="order-chips" role="group" aria-label="Words to place"></div>
+        <div class="row">
+          <button type="button" class="btn" id="order-hint">Hint</button>
+          <button type="button" class="btn" id="order-reset">Start over</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn" id="order-prev">Previous verse</button>
+          <button type="button" class="btn" id="order-next">Next verse</button>
+        </div>
+      </div>
+    </section>
+
+    <section role="tabpanel" id="panel-match" aria-labelledby="tab-match" hidden>
+      <div class="panel-inner">
+        <fieldset class="levels">
+          <legend>Question type</legend>
+          <label><input type="radio" name="match-kind" value="ref" checked> Pick the reference</label>
+          <label><input type="radio" name="match-kind" value="verse"> Pick the verse</label>
+        </fieldset>
+        <div id="match-area"></div>
+        <p class="result" id="match-result" role="status"></p>
+        <p class="score" id="match-score"></p>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="match-next">Next question</button>
+        </div>
+      </div>
+    </section>
+
+    <section role="tabpanel" id="panel-hide" aria-labelledby="tab-hide" hidden>
+      <div class="panel-inner">
+        <p class="help">Read the verse aloud, then hide a few more words. Keep going until you can say it with every word gone. Tap a hidden word to peek.</p>
+        <h2 class="game-ref" id="hide-ref"></h2>
+        <p class="hide-text verse-text" id="hide-text"></p>
+        <p class="pos" id="hide-pos" aria-live="polite"></p>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="hide-more">Hide more words</button>
+          <button type="button" class="btn" id="hide-reset">Start over</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn" id="hide-prev">Previous verse</button>
+          <button type="button" class="btn" id="hide-next">Next verse</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="wrap reset-wrap">
+    <button type="button" class="link-btn" id="reset-progress">Clear my progress on this device</button>
+  </div>
+</main>
+
+<footer class="wrap site-foot">
+  <p>Scripture quotations taken from the (LSB®) Legacy Standard Bible®, Copyright © 2021 by The Lockman Foundation. Used by permission. All rights reserved. Managed in partnership with Three Sixteen Publishing Inc. <a href="https://lsbible.org/">LSBible.org</a> and <a href="https://316publishing.com/">316publishing.com</a>.</p>
+  <p>Progress is saved only on this device. No accounts, no tracking.</p>
+</footer>
+<p class="sr" id="live" aria-live="polite"></p>
+</body>
+</html>
